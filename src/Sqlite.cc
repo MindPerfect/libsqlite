@@ -2,7 +2,13 @@
 #include "Sqlite.hh"
 // Std
 #include <string>
-#include <format>
+#if defined(__GNUC__) && (__GNUC__ < 13)
+# define FMT_HEADER_ONLY
+# include <fmt/core.h>
+using namespace fmt;
+#else
+# include <format>
+#endif
 // Prj
 #include <absl/log/log.h>
 
@@ -16,10 +22,10 @@ void Sqlite3Deleter(sqlite3* dbh)
 {
   // Called when dbh is going out of scope/deallocated.
   if(dbh) {
-    VLOG(2) << std::format("Closing Sqlite3 Dbh={}", (void*)dbh);
+    VLOG(2) << format("Closing Sqlite3 Dbh={}", (void*)dbh);
     int rv = sqlite3_close_v2(dbh);
     if(rv != SQLITE_OK) {
-      LOG(WARNING) << std::format("{} {}", rv, sqlite3_errstr(rv));
+      LOG(WARNING) << format("{} {}", rv, sqlite3_errstr(rv));
     }
   }
 }
@@ -36,7 +42,7 @@ SqliteDb::SqliteDb(std::string_view filename, int flags) :
   int rv = m_rc = sqlite3_open_v2(filename.data(), &dbh, flags, zVfs);
   if(rv == SQLITE_OK) {
     m_dbh.reset(dbh, Sqlite3Deleter);
-    VLOG(2) << std::format("Constructed Sqlite3 Dbh={}", (void*)m_dbh.get());
+    VLOG(2) << format("Constructed Sqlite3 Dbh={}", (void*)m_dbh.get());
     rv = sqlite3_extended_result_codes(dbh, 1); // Enable extended result codes by default
   }
   else {
@@ -57,10 +63,10 @@ int SqliteDb::checkError() const
     const char* emsg = sqlite3_errmsg(m_dbh.get());
     constexpr const char* fmt = "Sqlite eec={} {}";
     if(eec==SQLITE_ROW or eec==SQLITE_DONE) {
-      LOG(INFO) << std::format(fmt, eec, emsg);
+      LOG(INFO) << format(fmt, eec, emsg);
     }
     else {
-      LOG(ERROR) << std::format(fmt, eec, emsg);
+      LOG(ERROR) << format(fmt, eec, emsg);
       if(SqliteExceptionsEnabled && m_ex) throw std::runtime_error(emsg);      
     }
   }
@@ -75,10 +81,10 @@ int SqliteDb::CheckError(int rc, bool throwOnError)
     const char* emsg = sqlite3_errstr(rc);
     constexpr const char* fmt = "Sqlite rc={} {}";
     if(rc==SQLITE_ROW or rc==SQLITE_DONE) {
-      LOG(INFO) << std::format(fmt, rc, emsg);
+      LOG(INFO) << format(fmt, rc, emsg);
     }
     else {
-      LOG(ERROR) << std::format(fmt, rc, emsg);
+      LOG(ERROR) << format(fmt, rc, emsg);
       if(SqliteExceptionsEnabled && throwOnError) throw std::runtime_error(emsg);
     }
   }
@@ -168,11 +174,11 @@ void Sqlite3StmtDeleter(sqlite3_stmt* stmt)
 {
   // Called when stmt is going out of scope/deallocated.
   if(stmt) {
-    VLOG(2) << std::format("Finalizing Sqlite3 Stmt={}", (void*)stmt);
+    VLOG(2) << format("Finalizing Sqlite3 Stmt={}", (void*)stmt);
     int rv = sqlite3_finalize(stmt);
     if(rv != SQLITE_OK) {
       // Do not throw as this is called within destructor
-      LOG(ERROR) << std::format("{} {}", rv, sqlite3_errstr(rv));
+      LOG(ERROR) << format("{} {}", rv, sqlite3_errstr(rv));
     }
   }
 }
@@ -182,7 +188,7 @@ SqliteStmt::SqliteStmt(sqlite3_stmt* stmt) : m_bindPos{1}, m_colPos{0}, m_rc{0},
 {
   m_stmt.reset(stmt, Sqlite3StmtDeleter);
   if(stmt) {
-    VLOG(2) <<  std::format("Constructed Sqlite3 Stmt={}", (void*)m_stmt.get());
+    VLOG(2) <<  format("Constructed Sqlite3 Stmt={}", (void*)m_stmt.get());
   }
 }
 
@@ -206,7 +212,7 @@ bool SqliteStmt::operator++(int)
   int rc = m_rc = sqlite3_step(m_stmt.get());
   if(rc==SQLITE_ROW) return true;
   if(rc==SQLITE_DONE) {
-    VLOG(1) << std::format("Stepping done for Stmt={}", (void*)m_stmt.get());
+    VLOG(1) << format("Stepping done for Stmt={}", (void*)m_stmt.get());
     return false;
   }
   if(rc!=SQLITE_OK) {
@@ -246,10 +252,10 @@ int SqliteStmt::checkError() const
     const char* emsg = sqlite3_errstr(m_rc);
     constexpr const char* fmt = "Sqlite rc={} {}";
     if(m_rc==SQLITE_ROW or m_rc==SQLITE_DONE) {
-      VLOG(2) << std::format(fmt, m_rc, emsg);
+      VLOG(2) << format(fmt, m_rc, emsg);
     }
     else {
-      LOG(ERROR) << std::format(fmt, m_rc, emsg);
+      LOG(ERROR) << format(fmt, m_rc, emsg);
       if(SqliteExceptionsEnabled && m_ex) throw std::runtime_error(emsg);
     }
   }

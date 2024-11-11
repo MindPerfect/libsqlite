@@ -45,7 +45,7 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 
   # Provide hints to package locations
   set(GTest_DIR ${_opt_local}/gtest/lib/cmake/GTest)
-  set(absl_DIR ${_opt_local}/absl/lib/cmake/absl)
+  set(absl_DIR ${_opt_local}/abseil/lib/cmake/absl)
   #gperftools
   #benchmark
 

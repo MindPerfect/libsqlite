@@ -14,6 +14,13 @@
 // Google Test
 #include <gtest/gtest.h>
 // Prj includes
+#if defined(__GNUC__) && (__GNUC__ < 13)
+# define FMT_HEADER_ONLY
+# include <fmt/core.h>
+using namespace fmt;
+#else
+# include <format>
+#endif
 #include <absl/log/log.h>
 
 
@@ -24,7 +31,7 @@ using namespace MP;
 TEST(Sqlite_test, Base)
 {
 
-  LOG(INFO) << std::format( "sizeof(int)={} sizeof(double)={}", sizeof(int), sizeof(double));
+  LOG(INFO) << format( "sizeof(int)={} sizeof(double)={}", sizeof(int), sizeof(double));
 
   int rv;
   SqliteDb sd1("test1.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
@@ -73,16 +80,16 @@ TEST(Sqlite_test, Base)
       any a;
       sstmt.column(col, ival);
       a = sstmt.column(col);
-      LOG(INFO) << std::format( "Row {} Col {} = {} ({} ~ {})", row, col, ival, sizeof(ival), sizeof(a));
+      LOG(INFO) << format( "Row {} Col {} = {} ({} ~ {})", row, col, ival, sizeof(ival), sizeof(a));
       col++;
       sstmt.column(col, dval);
-      LOG(INFO) << std::format( "Row {} Col {} = {}", row, col, dval);
+      LOG(INFO) << format( "Row {} Col {} = {}", row, col, dval);
       col++;
       sstmt.column(col, sval);
-      LOG(INFO) << std::format( "Row {} Col {} = {}", row, col, sval);
+      LOG(INFO) << format( "Row {} Col {} = {}", row, col, sval);
       col++;
       a = sstmt.column(col);
-      LOG(INFO) << std::format( "Row {} Col {} Type = {} ({} ~ {})", row, col, sstmt.columnTypeStr(col), sizeof(int), sizeof(a));
+      LOG(INFO) << format( "Row {} Col {} Type = {} ({} ~ {})", row, col, sstmt.columnTypeStr(col), sizeof(int), sizeof(a));
       row++;
       continue;
     }
@@ -130,21 +137,21 @@ TEST(Sqlite_test, Base)
     //ival = sstmt.at(col);
     //sstmt >> ival;
     sstmt >> ival >> dval >> s;
-    LOG(INFO) << std::format("{} {} {}", ival, dval, s);
+    LOG(INFO) << format("{} {} {}", ival, dval, s);
 
     if(ival==6) {
       sstmt.column(3, tuple_out);
       sd1.checkError();
-      LOG(INFO) << std::format("First elem of tuple={}", (double)get<0>(tuple_out));
+      LOG(INFO) << format("First elem of tuple={}", (double)get<0>(tuple_out));
       ASSERT_TRUE(std::get<0>(tuple_out)==1.0);
     }
 
-    //LOG(INFO) << std::format( "Row {} Col {} = {}", row, col, ival);
+    //LOG(INFO) << format( "Row {} Col {} = {}", row, col, ival);
     //col++;
     //sstmt(col, dval);
     //dval = sstmt.at(col);
     //sstmt >> dval;
-    //LOG(INFO) << std::format( "Row {} Col {} = {}", row, col, dval);
+    //LOG(INFO) << format( "Row {} Col {} = {}", row, col, dval);
     row++;
   };
   ASSERT_TRUE(sstmt.rc()==SQLITE_DONE);

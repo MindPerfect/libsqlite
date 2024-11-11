@@ -5,7 +5,13 @@
 #include <exception>
 #include <filesystem>
 #include <system_error>
-#include <format>
+#if defined(__GNUC__) && (__GNUC__ < 13)
+# define FMT_HEADER_ONLY
+# include <fmt/core.h>
+using namespace fmt;
+#else
+# include <format>
+#endif
 // Prj
 #include <absl/log/log.h>
 
@@ -50,7 +56,7 @@ bool TableExists(SqliteDb& db, std::string_view table) {
   int rc{0};
   bool rv{false};
   try {
-    string sqlStr = std::format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}';", table);
+    string sqlStr = format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}';", table);
     SqliteStmt stmt;
     rc = db.prepare(sqlStr, stmt);
     rc = stmt.step();

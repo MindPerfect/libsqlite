@@ -43,7 +43,7 @@ if(WIN32)
   install(FILES ${CMAKE_BINARY_DIR}/sqlite3dl.dll DESTINATION lib)
 else()
   include(FindThreads)
-  target_link_libraries(exe ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+  target_link_libraries(exe ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} m)
   install(TARGETS exe RUNTIME DESTINATION bin)
 endif()
 
