@@ -6,6 +6,7 @@ inst*/
 gsl.def
 *.nupkg
 *.pdb
+*.debugtarget
 /build
 Testing/
 .qt/
