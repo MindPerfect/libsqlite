@@ -33,6 +33,15 @@ message(STATUS "CMAKE_HOST_SYSTEM_VERSION: ${CMAKE_HOST_SYSTEM_VERSION}")
 
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux") 
   message(STATUS "Linux detected.")
+
+ if(${CMAKE_HOST_SYSTEM_VERSION} MATCHES "WSL")
+   #TODO
+ else() 
+   set(GTest_DIR ${_opt_local}/lib/cmake/GTest)
+   set(absl_DIR ${_opt_local}/lib/cmake/absl) 
+ endif()
+
+
   include_directories(${_opt_local}/include)
   link_directories(${_opt_local}/lib)
 
