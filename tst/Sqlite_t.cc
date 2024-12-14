@@ -159,6 +159,32 @@ TEST(Sqlite_test, Base)
 }
 
 
-  
+TEST(Sqlite_test, Transactions) {
+    SqliteDb db("test_transactions.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+    // create a database case that can be written and read
+    ASSERT_TRUE(db.get());
+    // check that this is, yet again, a valid doable execution
 
+    db.exec("CREATE TABLE IF NOT EXISTS T2 (id INTEGER PRIMARY KEY, name TEXT)");
+    // make a table if it doesnt already exist
 
+    db.exec("BEGIN TRANSACTION");
+    // add a dummy value
+    db.exec("INSERT INTO T2 (id, name) VALUES (1, 'Alice')");
+    db.exec("ROLLBACK");
+    // check the statement can be rolled back
+
+    SqliteStmt stmt;
+    db.prepare("SELECT COUNT(*) FROM T2", stmt);
+    // Check what's in table T2. Since it was rolled back, the table should be empty.
+    stmt.step(); // Executes the SELECT statement and fetches the result row.
+
+    int count = 0;
+    stmt.column(0, count); 
+
+    if (count == 0) {
+        LOG(INFO) << "Transaction rolled back successfully. T2 is empty.";
+    } else {
+        LOG(ERROR) << "Rollback failed. Rows found in T2.";
+    }
+}
